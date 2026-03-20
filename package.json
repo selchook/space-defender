@@ -1,0 +1,22 @@
+{
+  "name": "space-defender",
+  "version": "1.0.0",
+  "description": "HTML5 Space Shooter Game",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "serve": "serve dist -p 3000"
+  },
+  "keywords": ["game", "html5", "canvas", "space", "shooter"],
+  "author": "Game Developer",
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "serve": "^14.2.1"
+  },
+  "engines": {
+    "node": "20"
+  }
+}
