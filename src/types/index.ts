@@ -1,4 +1,3 @@
-```typescript
 export interface GameState {
   score: number;
   highScore: number;
@@ -37,4 +36,3 @@ export interface TouchControls {
   leftButton: Phaser.GameObjects.Graphics;
   rightButton: Phaser.GameObjects.Graphics;
 }
-```

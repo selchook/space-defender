@@ -1,4 +1,3 @@
-```typescript
 import { TouchControls } from '../types';
 
 class InputManagerClass {
@@ -155,4 +154,3 @@ class InputManagerClass {
 }
 
 export const InputManager = new InputManagerClass();
-```

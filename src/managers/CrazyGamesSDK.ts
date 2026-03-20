@@ -1,4 +1,3 @@
-```typescript
 class CrazyGamesSDKManager {
   private _ready: boolean = false;
 
@@ -105,4 +104,3 @@ class CrazyGamesSDKManager {
 }
 
 export const CrazySDK = new CrazyGamesSDKManager();
-```

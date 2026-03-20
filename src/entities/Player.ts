@@ -1,4 +1,3 @@
-```typescript
 import { AudioManager } from '../managers/AudioManager';
 
 export class Player extends Phaser.GameObjects.Container {
@@ -155,4 +154,3 @@ export class Player extends Phaser.GameObjects.Container {
     super.destroy();
   }
 }
-```

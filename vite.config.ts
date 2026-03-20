@@ -1,18 +1,18 @@
-```typescript
 import { defineConfig } from 'vite'
 
 export default defineConfig({
+  base: './',
   build: {
     outDir: 'dist',
-    assetsInlineLimit: 0,
+    assetsDir: 'assets',
     rollupOptions: {
       output: {
-        manualChunks: undefined,
+        manualChunks: undefined
       }
     }
   },
   server: {
+    port: 3000,
     host: true
   }
 })
-```

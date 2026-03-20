@@ -1,4 +1,3 @@
-```typescript
 class AudioManagerClass {
   private audioContext: AudioContext | null = null;
   private isMuted: boolean = false;
@@ -172,4 +171,3 @@ class AudioManagerClass {
 }
 
 export const AudioManager = new AudioManagerClass();
-```

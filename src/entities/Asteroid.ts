@@ -1,4 +1,3 @@
-```typescript
 import { AsteroidConfig } from '../types';
 
 export class Asteroid extends Phaser.GameObjects.Graphics {
