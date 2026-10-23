@@ -1,0 +1,54 @@
+{
+  "$schema": "https://ayvago.com/schemas/manifest.v1.json",
+  "id": "spacedefender",
+  "title": {
+    "en": "Space Defender",
+    "tr": "Space Defender"
+  },
+  "description": {
+    "en": "Steer your ship through waves of asteroids. Blast them apart, collect resources and manage your fuel to survive each level.",
+    "tr": "Gemini asteroit dalgaları arasında yönet. Asteroitleri parçala, kaynak topla ve her seviyede hayatta kalmak için yakıtını idare et."
+  },
+  "category": "retro_action",
+  "tags": [
+    "space",
+    "shooter",
+    "asteroids"
+  ],
+  "entry": "https://space-defender-one.vercel.app/",
+  "orientation": "landscape",
+  "input": [
+    "keyboard"
+  ],
+  "players": {
+    "min": 1,
+    "max": 1
+  },
+  "scoring": {
+    "metric": "points",
+    "order": "desc",
+    "format": "number",
+    "label": {
+      "en": "Score",
+      "tr": "Puan"
+    },
+    "minDurationMs": 5000,
+    "maxPerSecond": 400,
+    "maxScore": 10000000
+  },
+  "ads": {
+    "rewarded": [
+      "extra_life"
+    ],
+    "interstitial": [
+      "game_over"
+    ]
+  },
+  "ageRating": "7+",
+  "sdkVersion": 2,
+  "assets": {
+    "icon": "/ayvago/icon-512.png",
+    "cover": "/ayvago/cover-1920x1080.jpg"
+  },
+  "version": "1.0.0"
+}
