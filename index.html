@@ -7,9 +7,6 @@
     <meta name="description" content="Defend Earth from alien invaders in this action-packed space shooter!">
     <meta name="keywords" content="space game, shooter, html5 game, arcade, aliens">
 
-    <!-- CrazyGames SDK -->
-    <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
-
     <style>
         * {
             margin: 0;
@@ -137,27 +134,18 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+    import { onPlatform } from './src/ayvago/platform.ts';
+
     (function() {
         'use strict';
-
-        // CrazyGames SDK helpers
-        const SDK = {
-            init: async () => {
-                if (window.CrazyGames) {
-                    try { await window.CrazyGames.SDK.init(); } catch(e) {}
-                }
-            },
-            gameplayStart: () => { try { window.CrazyGames?.SDK.game.gameplayStart(); } catch(e) {} },
-            gameplayStop: () => { try { window.CrazyGames?.SDK.game.gameplayStop(); } catch(e) {} },
-            loadingStart: () => { try { window.CrazyGames?.SDK.game.loadingStart(); } catch(e) {} },
-            loadingStop: () => { try { window.CrazyGames?.SDK.game.loadingStop(); } catch(e) {} },
-            happytime: () => { try { window.CrazyGames?.SDK.game.happytime(); } catch(e) {} }
-        };
 
         // Audio
         let audioCtx = null;
         let isMuted = false;
+        // Set by the platform (Ayvago); kept apart from the player's own mute toggle.
+        let platformMuted = false;
+        let platformPaused = false;
 
         function initAudio() {
             try {
@@ -166,7 +154,7 @@
         }
 
         function playSound(freq, duration, type = 'sine', vol = 0.3) {
-            if (!audioCtx || isMuted) return;
+            if (!audioCtx || isMuted || platformMuted || platformPaused) return;
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
@@ -213,6 +201,8 @@
         let invincibleTimer = 0;
         let gameRunning = false;
         let highScore = parseInt(localStorage.getItem('spaceDefenderHiScore') || '0');
+        // High score when the current run started, to detect a new personal best at game over.
+        let runStartHighScore = highScore;
 
         function initStars() {
             stars = [];
@@ -369,7 +359,6 @@
                             }
                             asteroids.splice(j, 1);
                             if (state.score > highScore) { highScore = state.score; localStorage.setItem('spaceDefenderHiScore', highScore); }
-                            SDK.happytime();
                         }
                         updateUI();
                         break;
@@ -522,6 +511,10 @@
             if (!gameRunning) return;
             const dt = Math.min(ts - lastTime, 50);
             lastTime = ts;
+            if (platformPaused) {
+                animId = requestAnimationFrame(loop);
+                return;
+            }
             update(dt);
             draw();
             animId = requestAnimationFrame(loop);
@@ -532,15 +525,21 @@
             initGame();
             document.getElementById('gameOver').style.display = 'none';
             gameRunning = true;
+            runStartHighScore = highScore;
             lastTime = performance.now();
             animId = requestAnimationFrame(loop);
-            SDK.gameplayStart();
+            onPlatform(p => p.gameplayStart());
         }
 
         function endGame() {
             gameRunning = false;
             if (animId) cancelAnimationFrame(animId);
-            SDK.gameplayStop();
+            const score = state.score;
+            const newBest = score > runStartHighScore;
+            onPlatform(p => {
+                p.endGame({ score, won: false });
+                if (newBest) p.celebrate();
+            });
             document.getElementById('finalScore').textContent = state.score;
             document.getElementById('finalHighScore').textContent = highScore;
             document.getElementById('gameOver').style.display = 'block';
@@ -560,10 +559,17 @@
             document.getElementById('muteBtn').textContent = isMuted ? 'UNMUTE' : 'MUTE';
         });
 
+        // Inside Ayvago the platform pauses the game when its tab is hidden and can mute it.
+        onPlatform(p => {
+            p.onPause(() => { platformPaused = true; });
+            p.onResume(() => { platformPaused = false; });
+            p.onMute(muted => { platformMuted = muted; });
+        });
+
         // Init
         initStars();
         initAudio();
-        SDK.init().then(() => startGame());
+        startGame();
     })();
     </script>
 </body>
