@@ -25,8 +25,12 @@
             overflow: hidden;
         }
 
+        /* Fixed and centered, so the 800×600 box never widens the page; resize() scales it to fit.
+           (In normal flow, phone browsers widened the layout to 800 px and zoomed the page out.) */
         #gameContainer {
-            position: relative;
+            position: fixed;
+            left: 50%;
+            top: 50%;
             border: 2px solid #333;
             background: radial-gradient(circle, #001122 0%, #000000 100%);
         }
@@ -111,6 +115,67 @@
             background: #00aaff;
             transition: width 0.1s;
         }
+
+        /* On-screen controls for touch devices. They live outside the scaled game container so they
+           keep a comfortable size: 72 px on phones, down to 48 px in a small embedded player. */
+        #touchControls {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 12px max(12px, env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+            pointer-events: none;
+            z-index: 30;
+        }
+
+        #touchControls[hidden] {
+            display: none;
+        }
+
+        .tc-group {
+            display: flex;
+            gap: clamp(8px, 3vmin, 12px);
+            pointer-events: auto;
+        }
+
+        @media (orientation: landscape) {
+            .tc-group {
+                flex-direction: column;
+            }
+        }
+
+        button.tc {
+            width: clamp(48px, 18vmin, 72px);
+            height: clamp(48px, 18vmin, 72px);
+            margin: 0;
+            padding: 0;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            font-size: clamp(20px, 7vmin, 28px);
+            line-height: 1;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        button.tc:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        button.tc.active {
+            background: rgba(0, 136, 255, 0.55);
+            border-color: #00aaff;
+        }
+
+        button.tc-fire {
+            border-color: rgba(255, 80, 80, 0.6);
+        }
     </style>
 </head>
 <body>
@@ -131,6 +196,16 @@
             <p>High Score: <span id="finalHighScore">0</span></p>
             <br>
             <button id="restartBtn">PLAY AGAIN</button>
+        </div>
+    </div>
+    <div id="touchControls" hidden>
+        <div class="tc-group">
+            <button class="tc" data-key="ArrowLeft" aria-label="Rotate left">&#9664;</button>
+            <button class="tc" data-key="ArrowRight" aria-label="Rotate right">&#9654;</button>
+        </div>
+        <div class="tc-group">
+            <button class="tc" data-key="ArrowUp" aria-label="Thrust">&#9650;</button>
+            <button class="tc tc-fire" data-key="Space" aria-label="Fire">&#9679;</button>
         </div>
     </div>
 
@@ -182,7 +257,7 @@
             const scale = Math.min(window.innerWidth / W, window.innerHeight / H);
             container.style.width = W + 'px';
             container.style.height = H + 'px';
-            container.style.transform = `scale(${scale})`;
+            container.style.transform = `translate(-50%, -50%) scale(${scale})`;
             container.style.transformOrigin = 'center center';
         }
         window.addEventListener('resize', resize);
@@ -552,6 +627,39 @@
             if (!gameRunning && (e.code === 'Enter' || e.code === 'Space')) startGame();
         });
         window.addEventListener('keyup', e => { keys[e.code] = false; });
+        // Nothing stays pressed when the window loses focus (tab switch, platform overlay).
+        window.addEventListener('blur', () => { keys = {}; });
+
+        // Touch: on-screen buttons press the same keys as the keyboard. They appear on touch
+        // screens, or as soon as the screen is touched on hybrid devices.
+        const touchControls = document.getElementById('touchControls');
+        const showTouchControls = () => { touchControls.hidden = false; };
+        if (window.matchMedia('(pointer: coarse)').matches) showTouchControls();
+        window.addEventListener('touchstart', showTouchControls, { once: true, passive: true });
+        touchControls.querySelectorAll('[data-key]').forEach(button => {
+            const code = button.dataset.key;
+            const release = () => {
+                keys[code] = false;
+                button.classList.remove('active');
+            };
+            button.addEventListener('pointerdown', e => {
+                e.preventDefault();
+                // Browsers only start audio from a user gesture.
+                if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+                // Like Space on the keyboard, the fire button starts a new game after game over.
+                if (!gameRunning && code === 'Space') {
+                    startGame();
+                    return;
+                }
+                keys[code] = true;
+                button.classList.add('active');
+                button.setPointerCapture(e.pointerId);
+            });
+            button.addEventListener('pointerup', release);
+            button.addEventListener('pointercancel', release);
+            button.addEventListener('lostpointercapture', release);
+            button.addEventListener('contextmenu', e => e.preventDefault());
+        });
 
         document.getElementById('restartBtn').addEventListener('click', startGame);
         document.getElementById('muteBtn').addEventListener('click', () => {
