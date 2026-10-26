@@ -18,6 +18,7 @@
   "entry": "https://space-defender-one.vercel.app/",
   "orientation": "landscape",
   "input": [
+    "touch",
     "keyboard"
   ],
   "players": {
